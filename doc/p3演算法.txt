@@ -1,0 +1,55 @@
+[Maou's Algorithm]
+
+假設有一個字串 "bcaedabdc"，想法:
+從左到右，每當遇到一個重複字元c時，
+就從『前一個c的下一個字元』開始算新的substring。
+例如，走訪字串到index 5時，'a'重複了，
+那麼第一個substring就是"bcaed"，
+然後新的substring就從前一個'a'的下一個字元開始，
+也就是從index 3開始新的substring，目前的substring即為"eda"。
+接著，到index 7時遇到'd'，此時的substring(index 3-6)是"edab"，
+長度算法為6-3+1=4，
+也可以想成目前的index(7)減去此substring的開頭的index(3)，
+而3這個數字就是上一次重複的'a'的index的下一個位置。
+之後同理，第三個子字串即為"abdc" (index 5-8)，
+最後去比較所有substring的最大值即可。
+
+有了想法後，接下來是實作面。
+為了加速，我選擇使用hashtable <char, index>。
+走訪字串時，我把每個走訪到的字元put到table中。
+
+以上面那個例子而言，
+到index 4的時候table的內容為:
+[<b,0>; <c,1>; <a,2>; <e,3>; <d,4>]
+而到index 5的時候'a'重複了，
+接下來的substring是從<a,2>的下一個字元，也就是<e,3>開始。
+我把新的'a'的index更新至table，此時table的內容為:
+[<b,0>; <c,1>; <a,5>; <e,3>; <d,4>]
+
+這邊可以注意到一件事，新的substring為"eda"(index 3-5)，
+但table中卻有'b'和'c'，但我又不想把他們刪掉(浪費時間)，
+所以我就用一個變數start去記錄目前substring的起始index，
+也就是上一個重複的'a'值的index+1 = 2+1 = 3，
+之後要檢查substring有沒有該字元時，
+判斷方式即為: table有包含該字元 AND 該字元的index值大於等於start。
+若該字元的index值比start還小，代表那是之前的substring記錄的資料，
+我就當作他其實不在table裡面。
+
+因此，到index 6時遇到'b'了，此時table中有<b,0>，
+但目前的substring "eda" 其實並不包含'b'，
+然後依照剛剛說的方式，table中'b'對應到的index為0，
+比start=3還小，代表那是上一個substring的舊資料，
+我就當作table中不存在這個值，直接去做update的動作，
+因此table的內容就變成:
+[<b,6>; <c,1>; <a,5>; <e,3>; <d,4>]
+(table中index值>=start的即為目前的substring，亦即"edab")
+
+接著到index 7的時候遇到'd'，
+此時table中有包含'd'，且index=4比start還大，
+代表substring中已經有'd'了，
+所以新的substring就從'd'的下一個字元開始，
+同時更新start值為4+1=5，接下來就依此類推。
+
+能取得所有substring後，也有相對應的index資料，
+就能去計算每個substring的長度，
+最後再取最大值即可。
